@@ -350,4 +350,37 @@ defmodule BlogPost.Accounts do
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
+
+  @doc """
+  Creates a changeset for the user permission level
+
+  ## Examples
+
+      iex> nil
+      nil
+
+  """
+  def change_user_permission_level(user = %User{}, perm) do
+    user |> User.permission_level_changeset(%{permission_level: perm})
+  end
+
+  def update_user_permission_level(user = %User{}, new_permission_level) do
+    user
+    |> change_user_permission_level(new_permission_level)
+    |> Repo.update()
+    # Just realized this code is redundant.
+    #|> case do
+    #  {:ok, user} -> {:ok, user}
+    #  {:error, reason} -> {:error, reason}
+    #end
+  end
+
+
+  
+
+
+
+
+
+
 end

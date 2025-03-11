@@ -2,6 +2,26 @@ defmodule BlogPost.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  # %{key = action, value = the minimum value to perform an action}
+
+  # permission rules:
+  # 1. all users can delete and edit their own posts, profiles, etc.
+  # 2. To create something requires at least the permission level listed below
+  # 3. Editing and deleting requires permissions below
+  # 4. Only one owner, and only the owner can change
+  @permissions_table %{
+    create_comment: 0,
+    create_blog: 100,
+    edit_blog: 200,
+    delete_blog: 200,
+    delete_comment: 200,
+    delete_account: 200,
+    make_admin: 400,
+    change_owner: 400
+  }
+
+  @actions Map.keys(@permissions_table)
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -16,7 +36,6 @@ defmodule BlogPost.Accounts.User do
 
     timestamps(type: :utc_datetime)
   end
-
 
   @doc """
   A user changeset for permission level.
@@ -71,6 +90,35 @@ defmodule BlogPost.Accounts.User do
         BlogPost.Accounts.User,
         :permission_level
       )
+
+  @doc """
+  Checks if the user has the rank to alter
+
+
+  TODO ***************************8
+  """
+
+  # Gets if the user can perform an action based on the permission number and number table
+  # defaults to false when there is an unknown action
+  def acceptable_user_action?(user = %__MODULE__{}, action) when action in @actions,
+    do: user |> get_user_permission_number() >= @permissions_table |> Map.get(action)
+  def acceptable_user_action_for_level?(_user, _action), do: false
+
+  defp get_permission_number(permission) do
+    Ecto.Enum.mappings(__MODULE__, :permission_level)
+    |> Keyword.get(permission)
+  end
+
+  defp get_user_permission_number(user) do
+    user.permission_level |> get_permission_number()
+  end
+
+  def higher_or_equal_permission_number_than_user?(user = %__MODULE__{}, comparing_user = %__MODULE__{}),
+    do: user |> get_user_permission_number() >= comparing_user |> get_user_permission_number()
+
+  def has_higher_or_equal_permission_number?(user = %__MODULE__{}, permission_level) do
+    user |> get_user_permission_number() >= permission_level |> get_permission_number()
+  end
 
   @doc """
   A user changeset for registration.
