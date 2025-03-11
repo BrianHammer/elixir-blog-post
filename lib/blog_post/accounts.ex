@@ -6,7 +6,7 @@ defmodule BlogPost.Accounts do
   import Ecto.Query, warn: false
   alias BlogPost.Repo
 
-  alias BlogPost.Accounts.{User, UserToken, UserNotifier}
+  alias BlogPost.Accounts.{User, UserToken, UserNotifier, Query}
 
   ## Database getters
 
@@ -368,19 +368,36 @@ defmodule BlogPost.Accounts do
     user
     |> change_user_permission_level(new_permission_level)
     |> Repo.update()
+
     # Just realized this code is redundant.
-    #|> case do
+    # |> case do
     #  {:ok, user} -> {:ok, user}
     #  {:error, reason} -> {:error, reason}
-    #end
+    # end
+  end
+
+  def list_users() do
+    Query.users() |> Repo.all()
+  end
+
+  def list_writers() do
+    Query.users() |> Query.by_permission_level(:writer) |> Repo.all()
   end
 
 
-  
+  def list_admins() do
+    Query.users() |> Query.by_permission_level(:admin) |> Repo.all()
+  end
+
+  def get_owners() do
+    Query.users() |> Query.by_permission_level(:owner) |> Repo.all()
+  end
 
 
+  def change_owner(user) do
+    current_owner = Query.users() |> Query.by_permission_level(:owner) |> Repo.all()
 
+    # Continue...
 
-
-
+  end
 end
