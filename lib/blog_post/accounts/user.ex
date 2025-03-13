@@ -16,8 +16,8 @@ defmodule BlogPost.Accounts.User do
     delete_blog: 200,
     delete_comment: 200,
     delete_account: 200,
-    make_admin: 400,
-    change_owner: 400
+    change_user_roles: 300,
+    change_owner: 300
   }
 
   @actions Map.keys(@permissions_table)

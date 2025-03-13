@@ -376,6 +376,19 @@ defmodule BlogPost.Accounts do
     # end
   end
 
+  ################################
+  ## AUTH
+  # Responsible for determining if a user has the option to do a certain action
+  ################################
+  def authorized_action?(user = %User{}, action) do
+    user |> User.acceptable_user_action?(action)
+  end
+
+  def authorized_action?(initiated_user = %User{}, targeted_user = %User{}, action) do
+    initiated_user |> User.acceptable_user_action?(action) &&
+      initiated_user |> User.has_higher_or_equal_permission_number?(targeted_user)
+  end
+
   def list_users() do
     Query.users() |> Repo.all()
   end
@@ -383,7 +396,6 @@ defmodule BlogPost.Accounts do
   def list_writers() do
     Query.users() |> Query.by_permission_level(:writer) |> Repo.all()
   end
-
 
   def list_admins() do
     Query.users() |> Query.by_permission_level(:admin) |> Repo.all()
@@ -393,11 +405,34 @@ defmodule BlogPost.Accounts do
     Query.users() |> Query.by_permission_level(:owner) |> Repo.all()
   end
 
-
   def change_owner(user) do
-    current_owner = Query.users() |> Query.by_permission_level(:owner) |> Repo.all()
+    current_owners =
+      Query.users() |> Query.by_permission_level(:owner) |> Repo.all() |> IO.inspect()
 
-    # Continue...
+    Ecto.Multi.new()
+    |> change_all_permission_levels_multi(current_owners, :admin)
+    |> promote_to_owner_multi(user)
+    |> Repo.transaction()
+  end
 
+  defp promote_to_owner_multi(multi, user) do
+    multi
+    |> Ecto.Multi.update(
+      {:promote_to_owner, user.id},
+      change_user_permission_level(user, :owner)
+    )
+  end
+
+  defp change_all_permission_levels_multi(multi, [], _new_level), do: multi
+
+  defp change_all_permission_levels_multi(multi, users, new_level) do
+    users
+    |> Enum.reduce(multi, fn user, multi ->
+      Ecto.Multi.update(
+        multi,
+        {:mass_update_user, new_level, user.id},
+        change_user_permission_level(user, new_level)
+      )
+    end)
   end
 end
