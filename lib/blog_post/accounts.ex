@@ -407,7 +407,10 @@ defmodule BlogPost.Accounts do
 
   def change_owner(user) do
     current_owners =
-      Query.users() |> Query.by_permission_level(:owner) |> Repo.all() |> IO.inspect()
+      Query.users()
+      |> Query.by_permission_level(:owner)
+      |> Repo.all()
+      |> Enum.reject(fn owner -> owner.id === user.id end)
 
     Ecto.Multi.new()
     |> change_all_permission_levels_multi(current_owners, :admin)
