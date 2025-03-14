@@ -34,6 +34,10 @@ defmodule BlogPost.Accounts.User do
       values: [guest: 0, writer: 100, lead_writer: 105, admin: 200, owner: 300],
       default: :guest
 
+
+    #
+    has_many :articles, BlogPost.Blog.Article
+
     timestamps(type: :utc_datetime)
   end
 
