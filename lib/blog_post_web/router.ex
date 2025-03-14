@@ -21,6 +21,14 @@ defmodule BlogPostWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    scope "/articles" do
+      pipe_through [:require_authenticated_user, :require_writer]
+
+      resources "/", ArticleController, only: [:new, :create, :edit, :update, :delete]
+    end
+
+    resources "/articles", ArticleController, only: [:index, :show]
   end
 
   # Other scopes may use custom stacks.

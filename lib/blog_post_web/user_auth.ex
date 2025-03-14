@@ -213,6 +213,45 @@ defmodule BlogPostWeb.UserAuth do
     end
   end
 
+  @doc """
+
+
+  """
+  def require_admin_user(conn, _opts) do
+    user = conn.assigns[:current_user]
+
+    if(user && user |> BlogPost.Accounts.User.has_higher_or_equal_permission_number?(:admin)) do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You are not authorized to access this page.")
+      |> maybe_store_return_to()
+      |> redirect(to: ~p"/")
+      |> halt()
+    end
+  end
+
+  # This is DOGSHIT!!!!
+  # Not DRY at all, but idk any other way
+  def require_writer(conn, _opts), do: conn |> redirect_if_not_role(:writer)
+
+  def require_admin(conn, _opts), do: conn |> redirect_if_not_role(:admin)
+
+  def require_owner(conn, _opts), do: conn |> redirect_if_not_role(:owner)
+
+  defp redirect_if_not_role(conn, role) do
+    user = conn.assigns[:current_user]
+
+    if(user && user |> BlogPost.Accounts.User.has_higher_or_equal_permission_number?(role)) do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You are not authorized to access this page.")
+      |> redirect(to: ~p"/")
+      |> halt()
+    end
+  end
+
   defp put_token_in_session(conn, token) do
     conn
     |> put_session(:user_token, token)
