@@ -13,6 +13,7 @@ defmodule BlogPostWeb.Plugs.RequireArticlePermission do
   # NEw call
   def call(%{private: %{phoenix_action: action}} = conn, _opts)
       when action in [:create, :update, :delete] do
+    IO.puts("EXECUTED AUTH")
     user = conn.assigns.current_user
     authorized? = conn |> is_authorized?(user, action)
 
@@ -45,7 +46,7 @@ defmodule BlogPostWeb.Plugs.RequireArticlePermission do
 
       false ->
         conn
-        |> put_flash(:error, "You are not authorized to perform this action")
+        |> put_flash(:error, "You are not to go on here")
         |> redirect(to: ~p"/articles")
         |> halt()
     end

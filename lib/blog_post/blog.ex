@@ -117,10 +117,14 @@ defmodule BlogPost.Blog do
     user |> User.has_higher_or_equal_permission_number?(:writer)
   end
 
+  def can_do_action?(_nil_user_value, _), do: false
+
   def can_do_action?(user = %BlogPost.Accounts.User{}, article = %Article{}, action)
       when action in [:update, :delete] do
     if user.id == article.user_id,
       do: true,
       else: user |> User.has_higher_or_equal_permission_number?(:admin)
   end
+
+  def can_do_action?(_nil_user_value, _, _), do: false
 end
