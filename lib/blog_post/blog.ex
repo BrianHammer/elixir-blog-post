@@ -8,6 +8,7 @@ defmodule BlogPost.Blog do
   alias BlogPost.Repo
 
   alias BlogPost.Blog.Article
+  alias BlogPost.Accounts.User
 
   @doc """
   Returns the list of articles.
@@ -108,5 +109,18 @@ defmodule BlogPost.Blog do
   """
   def change_article(%Article{} = article, attrs \\ %{}) do
     Article.changeset(article, attrs)
+  end
+
+  # Determines if a user can edit/delete/post an article
+
+  def can_do_action?(user = %BlogPost.Accounts.User{}, _action = :create) do
+    user |> User.has_higher_or_equal_permission_number?(:writer)
+  end
+
+  def can_do_action?(user = %BlogPost.Accounts.User{}, article = %Article{}, action)
+      when action in [:update, :delete] do
+    if user.id == article.user_id,
+      do: true,
+      else: user |> User.has_higher_or_equal_permission_number?(:admin)
   end
 end

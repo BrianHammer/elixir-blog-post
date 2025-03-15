@@ -251,7 +251,7 @@ defmodule BlogPostWeb.UserAuth do
       |> halt()
     end
   end
-
+  
   defp put_token_in_session(conn, token) do
     conn
     |> put_session(:user_token, token)

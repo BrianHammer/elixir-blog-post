@@ -1,6 +1,7 @@
 defmodule BlogPostWeb.Router do
   use BlogPostWeb, :router
 
+  alias BlogPostWeb.Plugs.RequireArticlePermission
   import BlogPostWeb.UserAuth
 
   pipeline :browser do
@@ -17,13 +18,15 @@ defmodule BlogPostWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :require_article_permission, do: plug(RequireArticlePermission)
+
   scope "/", BlogPostWeb do
     pipe_through :browser
 
     get "/", PageController, :home
 
     scope "/articles" do
-      pipe_through [:require_authenticated_user, :require_writer]
+      pipe_through [:require_authenticated_user, :require_writer, :require_article_permission]
 
       resources "/", ArticleController, only: [:new, :create, :edit, :update, :delete]
     end

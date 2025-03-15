@@ -6,7 +6,10 @@ defmodule BlogPostWeb.ArticleController do
 
   def index(conn, _params) do
     articles = Blog.list_articles()
-    render(conn, :index, articles: articles)
+    # render(conn, :index, articles: articles)
+    conn
+    |> assign(:articles, articles)
+    |> render(:index)
   end
 
   def new(conn, _params) do
